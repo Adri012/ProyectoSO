@@ -23,7 +23,7 @@ namespace cliente
         delegate void DelegadoGB(GroupBox mensaje);
         delegate void DelegadaDGV(DataGridView mensaje);
 
-        int puerto = 50026;
+        int puerto = 50032;
 
         public Form1()
         {
@@ -41,6 +41,8 @@ namespace cliente
         {
             while (true)
             {
+                if (serv.Connected == false)
+                    break;
                 byte[] msg2 = new byte[200];
                 serv.Receive(msg2);
                 string mensaje = Encoding.ASCII.GetString(msg2).Split('\0')[0];
@@ -137,7 +139,7 @@ namespace cliente
 
         private void btn_salir_Click(object sender, EventArgs e)
         {
-            string cod = "0/";
+            string cod = "0/" + tB_nombre.Text;
             byte[] msg = System.Text.Encoding.ASCII.GetBytes(cod);
             serv.Send(msg);
         }

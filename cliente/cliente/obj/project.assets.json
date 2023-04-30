@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\agbag\\Desktop\\nuevoproj5\\nuevoproj2\\cliente\\cliente\\cliente.csproj",
+      "projectUniqueName": "C:\\Users\\agbag\\Desktop\\nuevoproj5\\cliente\\cliente\\cliente.csproj",
       "projectName": "cliente",
-      "projectPath": "C:\\Users\\agbag\\Desktop\\nuevoproj5\\nuevoproj2\\cliente\\cliente\\cliente.csproj",
+      "projectPath": "C:\\Users\\agbag\\Desktop\\nuevoproj5\\cliente\\cliente\\cliente.csproj",
       "packagesPath": "C:\\Users\\agbag\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\agbag\\Desktop\\nuevoproj5\\nuevoproj2\\cliente\\cliente\\obj\\",
+      "outputPath": "C:\\Users\\agbag\\Desktop\\nuevoproj5\\cliente\\cliente\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\agbag\\AppData\\Roaming\\NuGet\\NuGet.Config",

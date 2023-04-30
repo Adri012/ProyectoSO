@@ -54,7 +54,7 @@ int DameSocket (ListaConectados *lista, char nombre[20])
 			i = i+1;
    	}
     if (encontrado)
-    	return lista->conectados[i].socket;			//Tambe conegut com a i
+    	return i;
     else
     	return -1;
 }
@@ -98,19 +98,19 @@ int Desconectar (ListaConectados *lista, char p[200], char respuesta[512])
 	strcpy(nombre,p);
 	
 	int pos = DameSocket (lista,nombre);
+	printf("Posicion del socket: %d \n", pos);
+	printf("este es el listanum viejo: %d \n", lista->num);
     if (pos == -1)
        	return -1;  
     else
     {
 		int i;
-		pthread_mutex_lock(&mutex);	
 		for (i = pos; i < lista->num-1; i++)
 		{
 			strcpy(lista->conectados[i].nombre, lista->conectados[i+1].nombre);
 			lista->conectados[i].socket = lista->conectados[i+1].socket;
 		}
 		lista->num--;
-		pthread_mutex_unlock(&mutex);
 		sprintf(respuesta,"0/Hasta la proxima!");
 		return 0;
     }
@@ -351,7 +351,6 @@ void *AtenderCliente (void *socket)
 		{
 			pthread_mutex_lock( &mutex );
 			int desc = Desconectar(&miLista, p, respuesta);
-			DameConectados(&miLista, conectado);
 			pthread_mutex_unlock( &mutex);
 			notificar=1;
 		}
