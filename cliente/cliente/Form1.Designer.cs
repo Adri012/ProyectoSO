@@ -49,6 +49,7 @@
             lbl_contar = new Label();
             btn_enviar = new Button();
             btn_conectar = new Button();
+            btn_invitar = new Button();
             ((System.ComponentModel.ISupportInitialize)dgv_conectados).BeginInit();
             SuspendLayout();
             // 
@@ -143,11 +144,11 @@
             // dgv_conectados
             // 
             dgv_conectados.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dgv_conectados.Location = new Point(586, 207);
+            dgv_conectados.Location = new Point(554, 207);
             dgv_conectados.Name = "dgv_conectados";
             dgv_conectados.RowHeadersWidth = 62;
             dgv_conectados.RowTemplate.Height = 33;
-            dgv_conectados.Size = new Size(285, 250);
+            dgv_conectados.Size = new Size(468, 250);
             dgv_conectados.TabIndex = 10;
             // 
             // lbl_conectados
@@ -162,7 +163,7 @@
             // 
             // btn_salir
             // 
-            btn_salir.Location = new Point(1114, 545);
+            btn_salir.Location = new Point(1246, 545);
             btn_salir.Name = "btn_salir";
             btn_salir.Size = new Size(91, 38);
             btn_salir.TabIndex = 12;
@@ -174,7 +175,7 @@
             // 
             lbl_peticiones.AutoSize = true;
             lbl_peticiones.Font = new Font("Bahnschrift SemiBold Condensed", 10F, FontStyle.Bold, GraphicsUnit.Point);
-            lbl_peticiones.Location = new Point(981, 144);
+            lbl_peticiones.Location = new Point(1113, 144);
             lbl_peticiones.Name = "lbl_peticiones";
             lbl_peticiones.Size = new Size(78, 24);
             lbl_peticiones.TabIndex = 13;
@@ -183,7 +184,7 @@
             // cbx_ganadas
             // 
             cbx_ganadas.AutoSize = true;
-            cbx_ganadas.Location = new Point(952, 192);
+            cbx_ganadas.Location = new Point(1084, 192);
             cbx_ganadas.Name = "cbx_ganadas";
             cbx_ganadas.Size = new Size(214, 29);
             cbx_ganadas.TabIndex = 15;
@@ -193,7 +194,7 @@
             // cbx_jugadas
             // 
             cbx_jugadas.AutoSize = true;
-            cbx_jugadas.Location = new Point(952, 227);
+            cbx_jugadas.Location = new Point(1084, 227);
             cbx_jugadas.Name = "cbx_jugadas";
             cbx_jugadas.Size = new Size(209, 29);
             cbx_jugadas.TabIndex = 16;
@@ -203,7 +204,7 @@
             // cbx_ganador
             // 
             cbx_ganador.AutoSize = true;
-            cbx_ganador.Location = new Point(952, 262);
+            cbx_ganador.Location = new Point(1084, 262);
             cbx_ganador.Name = "cbx_ganador";
             cbx_ganador.Size = new Size(235, 29);
             cbx_ganador.TabIndex = 17;
@@ -212,7 +213,7 @@
             // 
             // tB_peticion
             // 
-            tB_peticion.Location = new Point(989, 308);
+            tB_peticion.Location = new Point(1121, 308);
             tB_peticion.Name = "tB_peticion";
             tB_peticion.Size = new Size(139, 31);
             tB_peticion.TabIndex = 18;
@@ -221,14 +222,14 @@
             // 
             lbl_contar.BorderStyle = BorderStyle.FixedSingle;
             lbl_contar.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point);
-            lbl_contar.Location = new Point(1076, 141);
+            lbl_contar.Location = new Point(1208, 141);
             lbl_contar.Name = "lbl_contar";
             lbl_contar.Size = new Size(40, 34);
             lbl_contar.TabIndex = 19;
             // 
             // btn_enviar
             // 
-            btn_enviar.Location = new Point(978, 357);
+            btn_enviar.Location = new Point(1110, 357);
             btn_enviar.Name = "btn_enviar";
             btn_enviar.Size = new Size(171, 48);
             btn_enviar.TabIndex = 20;
@@ -248,11 +249,22 @@
             btn_conectar.UseVisualStyleBackColor = false;
             btn_conectar.Click += btn_conectar_Click;
             // 
+            // btn_invitar
+            // 
+            btn_invitar.Location = new Point(750, 486);
+            btn_invitar.Name = "btn_invitar";
+            btn_invitar.Size = new Size(129, 34);
+            btn_invitar.TabIndex = 22;
+            btn_invitar.Text = "Invitar";
+            btn_invitar.UseVisualStyleBackColor = true;
+            btn_invitar.Click += btn_invitar_Click;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1217, 595);
+            ClientSize = new Size(1350, 595);
+            Controls.Add(btn_invitar);
             Controls.Add(btn_conectar);
             Controls.Add(btn_enviar);
             Controls.Add(lbl_contar);
@@ -283,8 +295,6 @@
         }
 
         #endregion
-
-        private TextBox tB_nombre;
         private TextBox tB_contrasena;
         private TextBox tB_email;
         private Label lbl_nombre;
@@ -305,5 +315,7 @@
         private Label lbl_contar;
         private Button btn_enviar;
         private Button btn_conectar;
+        private Button btn_invitar;
+        public TextBox tB_nombre;
     }
 }

@@ -23,7 +23,7 @@ namespace cliente
         delegate void DelegadoGB(GroupBox mensaje);
         delegate void DelegadaDGV(DataGridView mensaje);
 
-        int puerto = 50032;
+        int puerto = 50070;
 
         public Form1()
         {
@@ -35,6 +35,10 @@ namespace cliente
         {
             lbl_email.Hide();
             tB_email.Hide();
+            dgv_conectados.ColumnCount = 2;
+            dgv_conectados.Columns[0].HeaderText = "Usuario";
+            dgv_conectados.Columns[1].HeaderText = "Invitar";
+
         }
 
         private void AtenderServidor()
@@ -56,6 +60,7 @@ namespace cliente
                         MessageBox.Show(trozos[1]);
                         serv.Shutdown(SocketShutdown.Both);
                         serv.Close();
+                        //Atender.Abort();
                         Close();
                         break;
                     case 1:     //PARTIDAS GANADAS
@@ -82,16 +87,70 @@ namespace cliente
                         if (num > 0)
                         {
                             for (int i = 0; i < num; i++)
-                                {
-                                    dgv_conectados.RowCount = num;
-                                    dgv_conectados.ColumnCount = 1;
-                                    dgv_conectados.Rows[i].Cells[0].Value = trozos[i+2];
-                                }
+                            {
+                                DataGridViewRow row = new DataGridViewRow();
+                                row.CreateCells(dgv_conectados);
+                                row.Cells[0].Value = trozos[i + 2];
+
+                                //if (trozos[i + 2].Equals(tB_nombre.Text))
+                                //{
+                                    //row.Cells[1].Value = "-";
+                                //}
+                                //else
+                                //{
+                                DataGridViewCheckBoxCell checkboxCell = new DataGridViewCheckBoxCell();
+                                checkboxCell.Value = false;
+                                row.Cells[1] = checkboxCell;
+                                //}
+                                dgv_conectados.Rows.Add(row);
+                            }
                         }
-                        
                         break;
                     case 7:     //SERVICIOS
                         lbl_contar.Text = trozos[1];
+                        break;
+                    case 8:
+                        string popup = trozos[1] + "te ha invitado a una partida. Te atreves?";
+                        var pregunta = MessageBox.Show(popup, tB_nombre.Text, MessageBoxButtons.YesNo);
+                        Invoke(new Action(() =>
+                        {
+                            if (pregunta == DialogResult.Yes)
+                            {
+                                string resp = "9/" + trozos[2] + "/SI/" + tB_nombre.Text + "/" + trozos[1];
+                                MessageBox.Show(resp);
+                                byte[] msg = System.Text.Encoding.ASCII.GetBytes(resp);
+                                serv.Send(msg);
+                            }
+                            if (pregunta == DialogResult.No)
+                            {
+                                string resp = "9/" + trozos[2] + "/NO/" + tB_nombre.Text + "/" + trozos[1];
+                                MessageBox.Show(resp);
+                                byte[] msg = System.Text.Encoding.ASCII.GetBytes(resp);
+                                serv.Send(msg);
+                            }
+                        }));
+                        break;
+                    case 10:
+                        if (trozos[1]=="OK" && trozos[2] == tB_nombre.Text)
+                        {
+                            string a = "Informacion para el host: " + trozos[3] + " se ha unido correctamente a tu partida";
+                            MessageBox.Show(a, tB_nombre.Text);
+                        }
+                        else if (trozos[1] == "OK" && trozos[2] != tB_nombre.Text)
+                        {
+                            string a = "Informacion para " + trozos[3] + ", te has unido correctamente a la partida de " + trozos[2];
+                            MessageBox.Show(a, tB_nombre.Text);
+                        }
+                        else if (trozos[1] == "KO" && trozos[2] == tB_nombre.Text)
+                        {
+                            string a = "Informacion para el host: " + trozos[3] + ", no ha podido unirte a tu partida";
+                            MessageBox.Show(a, tB_nombre.Text);
+                        }
+                        else if (trozos[1] == "KO" && trozos[2] != tB_nombre.Text)
+                        {
+                            string a = "Informacion para " + trozos[3] + ", no has podido unirte a la partida de " + trozos[2];
+                            MessageBox.Show(a, tB_nombre.Text);
+                        }
                         break;
                 }
             }
@@ -169,7 +228,7 @@ namespace cliente
                 serv.Send(msg);
             }
 
-            if (cbx_ganadas.Checked==false && cbx_jugadas.Checked==false && cbx_ganador.Checked==false)
+            if (cbx_ganadas.Checked == false && cbx_jugadas.Checked == false && cbx_ganador.Checked == false)
             {
                 MessageBox.Show("Error en la petición");
             }
@@ -197,22 +256,69 @@ namespace cliente
             Atender.Start();
 
 
-            //string reg6 = "6/";
-            //byte[] msg6 = System.Text.Encoding.ASCII.GetBytes(reg6);
-            //serv.Send(msg6);
-
-            if (tB_nombre.Text=="")
+            if (tB_nombre.Text == "")
             {
                 MessageBox.Show("Introduzca nombre de usuario");
             }
             else
             {
-                string reg9 = "9/" + tB_nombre.Text;
+                string reg9 = "7/" + tB_nombre.Text;
                 MessageBox.Show(reg9);
                 byte[] msg9 = System.Text.Encoding.ASCII.GetBytes(reg9);
                 serv.Send(msg9);
             }
-            
+
+        }
+
+        private void btn_invitar_Click(object sender, EventArgs e)
+        {
+            int invitados = 0;
+            string dest = "";
+            string dest2 = "";
+            string dest3 = "";
+            string reg;
+            foreach (DataGridViewRow row in dgv_conectados.Rows)
+            {
+                if (Convert.ToBoolean(row.Cells[1].Value))
+                {
+                    invitados = invitados + 1;
+                }
+            }
+
+            if (invitados > 3)
+                MessageBox.Show("Máximo 4 invitaciones");
+            else
+            {
+                foreach (DataGridViewRow row in dgv_conectados.Rows)
+                {
+                   
+                    if (Convert.ToBoolean(row.Cells[1].Value) && Convert.ToString(row.Cells[0].Value) == tB_nombre.Text)
+                        MessageBox.Show("No te puedes invitar a ti mismo");
+
+                    else if (Convert.ToBoolean(row.Cells[1].Value) && Convert.ToString(row.Cells[0].Value) != tB_nombre.Text)
+                    {
+                        if (dest == "")
+                            dest = Convert.ToString(row.Cells[0].Value).TrimEnd(' ', '\n');
+                        else if (dest != "" && dest2 == "")
+                            dest2 = Convert.ToString(row.Cells[0].Value).TrimEnd(' ', '\n');
+                        else if (dest != "" && dest2 != "" && dest3 == "")
+                            dest3 = Convert.ToString(row.Cells[0].Value).TrimEnd(' ', '\n');
+                        else
+                            MessageBox.Show("No es fa aixi ...");
+                    }
+                }
+                if (invitados == 1)
+                    reg = "8/" + invitados.ToString() + "/" + dest + "/" + tB_nombre.Text;
+                else if (invitados == 2)
+                    reg = "8/" + invitados.ToString() + "/" + dest + "/" + dest2 + "/" + tB_nombre.Text;
+                else if (invitados == 3)
+                    reg = "8/" + invitados.ToString() + "/" + dest + "/" + dest2 + "/" + dest3 + "/" + tB_nombre.Text;
+                else
+                    reg = "Algo esta malament bro";
+                MessageBox.Show(reg);
+                byte[] msg = System.Text.Encoding.ASCII.GetBytes(reg);
+                serv.Send(msg);
+            }
         }
     }
 }

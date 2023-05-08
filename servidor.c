@@ -11,7 +11,6 @@
 //Estructura necesaria para acceso excluyente
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
-//Declaramos la estructura con un nombre y un Socket
 typedef struct {
     char nombre[20];
     int socket;
@@ -22,6 +21,26 @@ typedef struct {
     int num;
 } ListaConectados;
 
+typedef struct {
+	int IDPartida;
+	int numJugadores;
+	int turno;
+	char tablero[30];
+	
+	char Host[20];
+	char nom2[20];
+	char nom3[20];
+	char nom4[20];
+	
+	int sock[4];
+	int ocupado;		//bool
+}Partida;
+
+typedef struct {
+	Partida partidas [100];
+	int num;
+} ListaPartidas;
+
 
 //Variables SQL
 MYSQL * conn;
@@ -31,16 +50,37 @@ MYSQL_ROW row;
 
 //---------------------------------------------------------------------------------------
 
-int contador;			//Acceso excluyente
+int contador;
 int i;
 int sockets [100];
 
 ListaConectados miLista;
-
+ListaPartidas miListaPartidas;
 
 
 //______________________________________________________________________________
 //FUNCIONES DE BUSQUEDA:
+
+int BuscarPosicionLista (ListaConectados *lista, char nombre[20])
+{
+	printf("Inicio SearchPosition.......................\n");
+	int i =0;
+	int encontrado=0;	
+	while ((i<lista->num) && (encontrado==0))
+	{
+		if (strcmp(lista->conectados[i].nombre,nombre)==0)
+			encontrado=1;
+		else
+				i=i+1;
+	}
+	if (encontrado == 1)
+		return i;
+	else
+		return -1;
+	printf("Final SearchPosition......................\n");
+}
+
+
 
 int DameSocket (ListaConectados *lista, char nombre[20])
 {
@@ -291,6 +331,321 @@ int InicioSesion(char p[200], char respuesta[512], int sock_conn)
 
 
 //______________________________________________________________________________
+//GESTION DE PARTIDAS:
+void CrearPartida(char nombre [20],ListaConectados *listaC, ListaPartidas *listaP, 	char respuesta[512], int sock_conn)
+{
+	int e=0;
+	int i=0;
+	int r=0;
+	printf("Iniciando busqueda.......................................\n");
+	printf("Numero de partidas: %d\n",listaP->num);
+	if (listaP->num<100)
+	{
+		while ((e==0) && (i<100))
+		{
+			if ((listaP->partidas[i].ocupado == 0))
+			{
+				printf("Espacio libre encontrado.......................................\n");
+				strcpy(listaP->partidas[i].Host, nombre);
+				printf("Nombre del Host: %s\n",listaP->partidas[i].Host);
+				int t = BuscarPosicionLista(listaC,listaP->partidas[i].Host);
+				listaP->partidas[i].sock[0]=listaC->conectados[t].socket;
+				listaP->partidas[i].IDPartida=i;
+				listaP->partidas[i].numJugadores=1;
+				listaP->partidas[i].ocupado=1;
+				
+				printf("Socket de la partida: %d\n",listaP->partidas[i].sock[0]);
+				printf("ID partida: %d\n",listaP->partidas[i].IDPartida);
+				printf("Numero de jugadores: %d\n",listaP->partidas[i].numJugadores);
+				printf("Ocupado: %d\n",listaP->partidas[i].ocupado);
+
+				listaP->num++;
+				printf("ListaPartidas NUM: %d \n", listaP->num);
+				printf("Host añadido.......................................\n");
+				r=1;
+				e=1;
+			}
+			i=i+1;
+		}
+	}
+	else
+		r=-1;
+	printf("Final de la busqueda. R= %d \n", r);
+	if (r==0)
+	{
+		sprintf(respuesta,"%s, error durante la creacion de la partida", nombre);
+		printf("Error al crear la partida\n");
+	}
+	else if (r==-1)
+	{
+		sprintf(respuesta,"%s, todas las partidas estan ocupadas",nombre);
+		printf("Error al crear la partida \n");
+	}
+	else if (r==1)
+	{
+		sprintf(respuesta, "%s, su partida ha sido creada con exito", nombre);
+		printf("Partida creada.......................................\n");
+	}
+}
+
+
+int FinalPartida (char nombre[20], ListaPartidas *lista)
+{
+	int e=0;
+	int i=0;
+	printf("Cerrando partida.......................................\n");
+	while ((e==0) && (i < 100))
+	{
+		if ((strcmp(lista->partidas[i].Host,nombre)==0) && (lista->partidas[i].ocupado ==1))
+		{
+			lista->partidas[i].ocupado=0;
+			lista->partidas[i].Host[0]='\0';
+			lista->partidas[i].nom2[0]='\0';
+			lista->partidas[i].nom3[0]='\0';
+			lista->partidas[i].nom4[0]='\0';
+			lista->num--;
+			e=1;
+		}
+		i++;
+	}
+	if (e==1)
+		printf("Partida cerrada con exito.......................................\n");
+	else
+		printf("Error al cerrar la Partida .....................................\n");
+	return e;
+}
+
+
+int BuscarPartida(char nombre[20], ListaPartidas *listaP)
+{
+	int e=0;
+	int i=0;
+	printf("Iniciando BuscarPartida.......................................\n");
+	while ((e==0) && (i < listaP->num))
+	{
+		printf("%s // %s\n",listaP->partidas[i].Host,nombre);
+		if (((strcmp(listaP->partidas[i].Host,nombre)==0))) 	//|| (strcmp(lista->Partidas[i].nom2,nombre)==0) || (strcmp(lista->Partidas[i].nom3,nombre)==0) || (strcmp(lista->Partidas[i].nom4,nombre)==0)) && (lista->Partidas[i].ocupado ==1)){
+
+		//if (((strcmp(miListaPartidas.partidas[i].Host,nombre)==0)))
+		{
+			e=1;
+		}
+		if (e==0)
+			i++;
+	}
+	printf("Posicion: %d Encontrado: %d\n",i,e);
+	if (e==1)
+		return i;
+	else
+		return -1;
+	printf("Cerrando BuscarPartida.......................................\n");
+}
+
+//Busca la partida usando el nombre del host. Devuelve -1 si hay algun error,
+//0 si la partida esta llena, 1 si se ha podido unir y -2 si no se ha encontrado
+int UnirsePartida(char Host[20], char nombre[20], ListaConectados *listaC, ListaPartidas *listaP)
+{
+	printf("Iniciando UnirsePartida.......................................\n");
+	int posicion = BuscarPartida(Host,listaP);
+	if (posicion==-1)
+		return -2;
+	else
+	{
+		if (listaP->partidas[posicion].numJugadores==0)
+			return -1;
+		else if (listaP->partidas[posicion].numJugadores==4)
+			return 0;
+		else if (listaP->partidas[posicion].numJugadores==1)
+		{
+			strcpy(listaP->partidas[posicion].nom2,nombre);
+			int socket = DameSocket(listaC, nombre);
+			listaP->partidas[posicion].sock[listaP->partidas[posicion].numJugadores]=socket;
+			listaP->partidas[posicion].numJugadores=2;
+			return 1;
+		}
+		else if (listaP->partidas[posicion].numJugadores==2)
+		{
+			strcpy(listaP->partidas[posicion].nom3,nombre);
+			int socket = DameSocket(listaC, nombre);
+			listaP->partidas[posicion].sock[listaP->partidas[posicion].numJugadores]=socket;
+			listaP->partidas[posicion].numJugadores=3;
+			return 1;
+		}
+		else if (listaP->partidas[posicion].numJugadores==3)
+		{
+			strcpy(listaP->partidas[posicion].nom4,nombre);
+			int socket = DameSocket(listaC, nombre);
+			listaP->partidas[posicion].sock[listaP->partidas[posicion].numJugadores]=socket;
+			listaP->partidas[posicion].numJugadores=3;
+			return 1;
+		}
+		else
+			return -1;
+	}
+	printf("Cerrando UnirsePartida.......................................\n");
+}
+
+int BuscarTuPartida(int socket, ListaPartidas *lista){
+	int e=0;
+	int i=0;
+	while ((i<lista->num) && (e==0))
+	{
+		for (int j=0;j<lista->partidas[i].numJugadores;j++)
+		{
+			if (lista->partidas[i].sock[j]==socket)
+				e=1;
+		}
+		if (e==0)
+			i++;
+	}
+	if (e==1)
+		return i;
+	else
+		return -1;
+}
+
+
+	
+	
+	
+
+//______________________________________________________________________________
+//INVITACIONES:
+
+void Invitacion(char *p, ListaConectados *listaC, ListaPartidas *listaP, char respuesta[1024], int sock_conn)
+{
+	char nomO [20];
+	char nomD [20];
+	int invitados;
+	
+	printf("Preparando invitacion.......................................\n");
+	invitados = atoi(p);
+	printf("Invitados: %d \n", invitados);
+	p = strtok(NULL, "/");
+	strcpy(nomD,p);
+	printf("Destino 1: %s \n",nomD);
+	p = strtok(NULL, "/");
+	if (invitados==2)
+	{
+		strcpy(nomD2,p);
+		printf("Destino 2: %s \n",nomD2);
+		p = strtok(NULL, "/");
+	}
+	else if (invitados==3)
+	{
+		strcpy(nomD2,p);
+		printf("Destino 2: %s \n",nomD2);
+		p = strtok(NULL, "/");
+		strcpy(nomD3,p);
+		printf("Destino 3: %s \n",nomD3);
+		p = strtok(NULL, "/");
+	}
+	
+	strcpy(nomO,p);
+	printf("Origen: %s \n", nomO);
+	
+	int posD = BuscarPosicionLista(listaC,nomD);
+	int socketD = DameSocket(listaC, nomD);
+	if (invitados==2)
+	{
+		int posD2 = BuscarPosicionLista(listaC,nomD2);
+		int socketD2 = DameSocket(listaC, nomD2);
+	}
+	else if (invitados==3)
+	{
+		int posD2 = BuscarPosicionLista(listaC,nomD2);
+		int posD3 = BuscarPosicionLista(listaC,nomD3);
+		int socketD2 = DameSocket(listaC, nomD2);
+		int socketD3 = DameSocket(listaC, nomD3);
+	}
+	int posO = BuscarPosicionLista(listaC,nomO);
+	int socketO = DameSocket(listaC, nomO);
+	//printf("Pos Destino:%d \t Pos Origen:%d \n", posD, posO);
+	//printf("Socket Destino: %d \t Socket Origen: %d \n",socketD, socketO);
+	
+	int r = BuscarPartida(nomO, listaP);
+	printf("Result BuscarPartida: %d\n",r);
+	if (r==-1)
+	{
+		CrearPartida(nomO,listaC,listaP,respuesta, socketO);
+		printf("Partida lista.......................................\n");
+	}
+	
+	sprintf(respuesta,"8/%s/%s",nomO,itoa(invitados));
+	printf("Respuesta: %s\n", respuesta);
+	if (invitados==1)
+	{
+		printf("Socket destino: %d\n",socketD);
+		write(socketD,respuesta,strlen(respuesta));
+	}
+	else if (invitados==2)
+	{
+		printf("Sockets destino: %d, %d \n", socketD,socketD2);
+		write(socketD,respuesta,strlen(respuesta));
+		write(socketD2,respuesta,strlen(respuesta));
+	}
+	else if (invitados==3)
+	{
+		printf("Sockets destino: %d, %d, %d \n", socketD,socketD2, socketD3);
+		write(socketD,respuesta,strlen(respuesta));
+		write(socketD2,respuesta,strlen(respuesta));
+		write(socketD3,respuesta,strlen(respuesta));
+	}
+	
+	printf("Invitacion enviada.......................................\n");
+}
+
+void ConfirmarInvitacion(char *p, ListaConectados *listaC, ListaPartidas *listaP, char respuesta[512])
+{
+	char confirmacion[10];
+	char nomO[20];
+	char nomD[20];
+	char nomD2[20];
+	char nomD3[20];
+	
+	printf("Preparando Confirmacion..................................\n");
+
+	int invitados =  atoi(p);
+	p = strtok(NULL,"/");
+	strcpy(confirmacion,p);
+	printf("Respuesta: %s \n",confirmacion);
+	p = strtok (NULL,"/");
+	strcpy(nomD,p);
+	printf("Al que se lo proponen: %s \n",nomD);
+	p = strtok (NULL,"/");
+	if (invitados == 1)
+	{
+		//--------------------------------------------------------------------------------------------------------------------------------------------
+	}
+	strcpy(nomO,p);
+	printf("El que propone: %s \n",nomO);
+	int socketD = DameSocket(listaC, nomD);
+	int socketO = DameSocket(listaC, nomO);
+	printf("Socket Propuesto: %d  Socket Proponedor:%d \n", socketD, socketO);
+	
+	if (strcmp(confirmacion,"SI")==0)
+	{
+		printf("Confirmacion positiva \n");
+		int r = UnirsePartida(nomO,nomD,listaC,listaP);
+		printf("Resultado del UnirsePartida: %d\n", r);
+		if (r==1)
+			sprintf(respuesta,"10/OK/%s/%s",nomO,nomD);
+		else
+			sprintf(respuesta,"10/KO/%s/%s",nomO,nomD);
+	}
+	else
+		sprintf(respuesta,"10/KO/%s/%s",nomO,nomD);
+	
+	printf("Confirmar invitacion terminado.......................\n");
+}
+
+// Crear para 2 i 3 invitados
+
+
+
+
+
+//______________________________________________________________________________
 //ATENDER CLIENTE:
 
 void *AtenderCliente (void *socket)
@@ -385,7 +740,7 @@ void *AtenderCliente (void *socket)
 		}
 				
 		//NUEVO CONECTADO
-		if (codigo==9)
+		if (codigo==7)
 		{
 			pthread_mutex_lock( &mutex );
 			NuevoConectado(&miLista, p, sock_conn);
@@ -393,12 +748,37 @@ void *AtenderCliente (void *socket)
 			pthread_mutex_unlock( &mutex);
 			notificar=1;
    		}
+		
+		//INVITACION
+		if (codigo==8)
+		{
+			pthread_mutex_lock( &mutex );
+			Invitacion(p, &miLista, &miListaPartidas, respuesta, sock_conn);
+			pthread_mutex_unlock( &mutex);
+   		}
+		if (codigo==9)
+		{
+			//pthread_mutex_lock( &mutex );
+			ConfirmarInvitacion(p, &miLista, &miListaPartidas, respuesta);
+			//pthread_mutex_unlock( &mutex);
+   		}
    	 
 		
 		printf("Respuesta: %s \n", respuesta);
-		write (sock_conn,respuesta, strlen(respuesta));
+		if ((codigo ==1)||(codigo==2)|| (codigo==3)||(codigo==4)|| (codigo==5)|| (codigo==6) || (codigo ==7)||(codigo==8))
+		{
+			printf("Socket por el que se enviara: %d \n", sock_conn);
+			write (sock_conn, respuesta, strlen(respuesta));
+		}
+		else if (codigo==9)
+		{
+			for (int j=0; j<i;j++)		//miLista.num
+			{
+				write (miLista.conectados[j].socket,respuesta,strlen(respuesta));
+			}
+		}
+		
 
-   	 
 		//CONTADOR DE FUNCIONES
 		if ((codigo ==1)||(codigo==2)|| (codigo==3)||(codigo==4)|| (codigo==5)|| (codigo==6))
 		{
@@ -434,7 +814,7 @@ int main(int argc, char *argv[])
     int sock_conn, sock_listen;
     struct sockaddr_in serv_adr;    
     
-	int puerto =50026;
+	int puerto =50054;
     
     if ((sock_listen = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 		printf("Error creant socket");
