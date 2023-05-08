@@ -512,10 +512,12 @@ int BuscarTuPartida(int socket, ListaPartidas *lista){
 //______________________________________________________________________________
 //INVITACIONES:
 
-void Invitacion(char *p, ListaConectados *listaC, ListaPartidas *listaP, char respuesta[1024], int sock_conn)
+void Invitacion(char *p, ListaConectados *listaC, ListaPartidas *listaP, char respuesta[1024], char posD_str[4], char posD2_str[4], char posD3_str[4], char invitados_str[4])
 {
 	char nomO [20];
 	char nomD [20];
+	char nomD2 [20];
+	char nomD3 [20];
 	int invitados;
 	
 	printf("Preparando invitacion.......................................\n");
@@ -546,10 +548,14 @@ void Invitacion(char *p, ListaConectados *listaC, ListaPartidas *listaP, char re
 	
 	int posD = BuscarPosicionLista(listaC,nomD);
 	int socketD = DameSocket(listaC, nomD);
+	//sprintf(socketD_str, "%d", socketD);
+	sprintf(posD_str, "%d", posD);
 	if (invitados==2)
 	{
 		int posD2 = BuscarPosicionLista(listaC,nomD2);
 		int socketD2 = DameSocket(listaC, nomD2);
+		//sprintf(socketD2_str, "%d", socketD2);
+		sprintf(posD2_str, "%d", posD2);
 	}
 	else if (invitados==3)
 	{
@@ -557,6 +563,10 @@ void Invitacion(char *p, ListaConectados *listaC, ListaPartidas *listaP, char re
 		int posD3 = BuscarPosicionLista(listaC,nomD3);
 		int socketD2 = DameSocket(listaC, nomD2);
 		int socketD3 = DameSocket(listaC, nomD3);
+		//sprintf(socketD2_str, "%d", socketD2);
+		//sprintf(socketD3_str, "%d", socketD3);
+		sprintf(posD2_str, "%d", posD2);
+		sprintf(posD3_str, "%d", posD3);
 	}
 	int posO = BuscarPosicionLista(listaC,nomO);
 	int socketO = DameSocket(listaC, nomO);
@@ -571,28 +581,11 @@ void Invitacion(char *p, ListaConectados *listaC, ListaPartidas *listaP, char re
 		printf("Partida lista.......................................\n");
 	}
 	
-	sprintf(respuesta,"8/%s/%s",nomO,itoa(invitados));
-	printf("Respuesta: %s\n", respuesta);
-	if (invitados==1)
-	{
-		printf("Socket destino: %d\n",socketD);
-		write(socketD,respuesta,strlen(respuesta));
-	}
-	else if (invitados==2)
-	{
-		printf("Sockets destino: %d, %d \n", socketD,socketD2);
-		write(socketD,respuesta,strlen(respuesta));
-		write(socketD2,respuesta,strlen(respuesta));
-	}
-	else if (invitados==3)
-	{
-		printf("Sockets destino: %d, %d, %d \n", socketD,socketD2, socketD3);
-		write(socketD,respuesta,strlen(respuesta));
-		write(socketD2,respuesta,strlen(respuesta));
-		write(socketD3,respuesta,strlen(respuesta));
-	}
+	sprintf(invitados_str, "%d", invitados);
 	
-	printf("Invitacion enviada.......................................\n");
+	sprintf(respuesta,"8/%s/%s",nomO, invitados_str);
+	
+	printf("Invitacion acabada.......................................\n");
 }
 
 void ConfirmarInvitacion(char *p, ListaConectados *listaC, ListaPartidas *listaP, char respuesta[512])
@@ -600,8 +593,6 @@ void ConfirmarInvitacion(char *p, ListaConectados *listaC, ListaPartidas *listaP
 	char confirmacion[10];
 	char nomO[20];
 	char nomD[20];
-	char nomD2[20];
-	char nomD3[20];
 	
 	printf("Preparando Confirmacion..................................\n");
 
@@ -613,15 +604,11 @@ void ConfirmarInvitacion(char *p, ListaConectados *listaC, ListaPartidas *listaP
 	strcpy(nomD,p);
 	printf("Al que se lo proponen: %s \n",nomD);
 	p = strtok (NULL,"/");
-	if (invitados == 1)
-	{
-		//--------------------------------------------------------------------------------------------------------------------------------------------
-	}
 	strcpy(nomO,p);
 	printf("El que propone: %s \n",nomO);
 	int socketD = DameSocket(listaC, nomD);
 	int socketO = DameSocket(listaC, nomO);
-	printf("Socket Propuesto: %d  Socket Proponedor:%d \n", socketD, socketO);
+	printf("Socket Propuesto: %d , Socket Proponedor: %d \n", socketD, socketO);
 	
 	if (strcmp(confirmacion,"SI")==0)
 	{
@@ -638,10 +625,6 @@ void ConfirmarInvitacion(char *p, ListaConectados *listaC, ListaPartidas *listaP
 	
 	printf("Confirmar invitacion terminado.......................\n");
 }
-
-// Crear para 2 i 3 invitados
-
-
 
 
 
@@ -663,6 +646,14 @@ void *AtenderCliente (void *socket)
     char peticion[512];
     char respuesta[512];
     int ret;
+	
+	//char socketD_str[4];
+	//char socketD2_str[4];
+	//char socketD3_str[4];
+	char posD_str[4];
+	char posD2_str[4];
+	char posD3_str[4];
+	char invitados_str[4];
     
     
     conn = mysql_init(NULL);
@@ -753,7 +744,8 @@ void *AtenderCliente (void *socket)
 		if (codigo==8)
 		{
 			pthread_mutex_lock( &mutex );
-			Invitacion(p, &miLista, &miListaPartidas, respuesta, sock_conn);
+			//Invitacion(p, &miLista, &miListaPartidas, respuesta, socketD_str, socketD2_str, socketD3_str, invitados_str);
+			Invitacion(p, &miLista, &miListaPartidas, respuesta, posD_str, posD2_str, posD3_str, invitados_str);
 			pthread_mutex_unlock( &mutex);
    		}
 		if (codigo==9)
@@ -765,10 +757,54 @@ void *AtenderCliente (void *socket)
    	 
 		
 		printf("Respuesta: %s \n", respuesta);
-		if ((codigo ==1)||(codigo==2)|| (codigo==3)||(codigo==4)|| (codigo==5)|| (codigo==6) || (codigo ==7)||(codigo==8))
+		if ((codigo ==1)||(codigo==2)|| (codigo==3)||(codigo==4)|| (codigo==5)|| (codigo==6) || (codigo ==7))
 		{
 			printf("Socket por el que se enviara: %d \n", sock_conn);
 			write (sock_conn, respuesta, strlen(respuesta));
+		}
+		else if (codigo==8)
+		{
+			int invitados = atoi(invitados_str);
+			printf("invitados: %d \n", invitados);
+			if (invitados == 1)
+			{
+				//int socketD = atoi(socketD_str);
+				//printf("Sockets destino: %d \n", socketD);
+				//write (socketD, respuesta, strlen(respuesta));
+				int posD = atoi(posD_str);
+				printf("Pos destino: %d \n", posD);
+				write (miLista.conectados[posD].socket,respuesta,strlen(respuesta));
+			}
+			else if (invitados == 2)
+			{
+				//int socketD = atoi(socketD_str);
+				//int socketD2 = atoi(socketD2_str);
+				int posD = atoi(posD_str);
+				int posD2 = atoi(posD2_str);
+				printf("Pos destino: %d, %d \n", posD, posD2);
+				//write (socketD, respuesta, strlen(respuesta));
+				//write (socketD2, respuesta, strlen(respuesta));
+				write (miLista.conectados[posD].socket,respuesta,strlen(respuesta));
+				write (miLista.conectados[posD2].socket,respuesta,strlen(respuesta));
+			}
+			else if (invitados == 3)
+			{
+				//int socketD = atoi(socketD_str);
+				//int socketD2 = atoi(socketD2_str);
+				//int socketD3 = atoi(socketD3_str);
+				int posD = atoi(posD_str);
+				int posD2 = atoi(posD2_str);
+				int posD3 = atoi(posD3_str);
+				printf("Pos destino: %d, %d, %d \n", posD, posD2, posD3);
+				//write (socketD, respuesta, strlen(respuesta));
+				//write (socketD2, respuesta, strlen(respuesta));
+				//write (socketD3, respuesta, strlen(respuesta));
+				write (miLista.conectados[posD].socket,respuesta,strlen(respuesta));
+				write (miLista.conectados[posD2].socket,respuesta,strlen(respuesta));
+				write (miLista.conectados[posD3].socket,respuesta,strlen(respuesta));
+			}
+			else
+				printf("Error");
 		}
 		else if (codigo==9)
 		{
@@ -814,7 +850,7 @@ int main(int argc, char *argv[])
     int sock_conn, sock_listen;
     struct sockaddr_in serv_adr;    
     
-	int puerto =50054;
+	int puerto =50068;
     
     if ((sock_listen = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 		printf("Error creant socket");
