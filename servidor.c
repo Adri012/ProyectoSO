@@ -588,7 +588,7 @@ void Invitacion(char *p, ListaConectados *listaC, ListaPartidas *listaP, char re
 	printf("Invitacion acabada.......................................\n");
 }
 
-void ConfirmarInvitacion(char *p, ListaConectados *listaC, ListaPartidas *listaP, char respuesta[512])
+void ConfirmarInvitacion(char *p, ListaConectados *listaC, ListaPartidas *listaP, char respuesta[512], char posD_str[4], char posO_str[4])
 {
 	char confirmacion[10];
 	char nomO[20];
@@ -606,9 +606,11 @@ void ConfirmarInvitacion(char *p, ListaConectados *listaC, ListaPartidas *listaP
 	p = strtok (NULL,"/");
 	strcpy(nomO,p);
 	printf("El que propone: %s \n",nomO);
-	int socketD = DameSocket(listaC, nomD);
-	int socketO = DameSocket(listaC, nomO);
-	printf("Socket Propuesto: %d , Socket Proponedor: %d \n", socketD, socketO);
+	int posD = BuscarPosicionLista(listaC, nomD);
+	int posO = BuscarPosicionLista(listaC, nomO);
+	sprintf(posD_str, "%d", posD);
+	sprintf(posO_str, "%d", posO);
+	printf("Posicion Propuesto: %s , Posicion Proponedor: %s \n", posD_str, posO_str);
 	
 	if (strcmp(confirmacion,"SI")==0)
 	{
@@ -653,6 +655,7 @@ void *AtenderCliente (void *socket)
 	char posD_str[4];
 	char posD2_str[4];
 	char posD3_str[4];
+	char posO_str[4];
 	char invitados_str[4];
     
     
@@ -751,7 +754,7 @@ void *AtenderCliente (void *socket)
 		if (codigo==9)
 		{
 			//pthread_mutex_lock( &mutex );
-			ConfirmarInvitacion(p, &miLista, &miListaPartidas, respuesta);
+			ConfirmarInvitacion(p, &miLista, &miListaPartidas, respuesta, posD_str, posO_str);
 			//pthread_mutex_unlock( &mutex);
    		}
    	 
@@ -768,37 +771,24 @@ void *AtenderCliente (void *socket)
 			printf("invitados: %d \n", invitados);
 			if (invitados == 1)
 			{
-				//int socketD = atoi(socketD_str);
-				//printf("Sockets destino: %d \n", socketD);
-				//write (socketD, respuesta, strlen(respuesta));
 				int posD = atoi(posD_str);
 				printf("Pos destino: %d \n", posD);
 				write (miLista.conectados[posD].socket,respuesta,strlen(respuesta));
 			}
 			else if (invitados == 2)
 			{
-				//int socketD = atoi(socketD_str);
-				//int socketD2 = atoi(socketD2_str);
 				int posD = atoi(posD_str);
 				int posD2 = atoi(posD2_str);
 				printf("Pos destino: %d, %d \n", posD, posD2);
-				//write (socketD, respuesta, strlen(respuesta));
-				//write (socketD2, respuesta, strlen(respuesta));
 				write (miLista.conectados[posD].socket,respuesta,strlen(respuesta));
 				write (miLista.conectados[posD2].socket,respuesta,strlen(respuesta));
 			}
 			else if (invitados == 3)
 			{
-				//int socketD = atoi(socketD_str);
-				//int socketD2 = atoi(socketD2_str);
-				//int socketD3 = atoi(socketD3_str);
 				int posD = atoi(posD_str);
 				int posD2 = atoi(posD2_str);
 				int posD3 = atoi(posD3_str);
 				printf("Pos destino: %d, %d, %d \n", posD, posD2, posD3);
-				//write (socketD, respuesta, strlen(respuesta));
-				//write (socketD2, respuesta, strlen(respuesta));
-				//write (socketD3, respuesta, strlen(respuesta));
 				write (miLista.conectados[posD].socket,respuesta,strlen(respuesta));
 				write (miLista.conectados[posD2].socket,respuesta,strlen(respuesta));
 				write (miLista.conectados[posD3].socket,respuesta,strlen(respuesta));
@@ -807,6 +797,14 @@ void *AtenderCliente (void *socket)
 				printf("Error");
 		}
 		else if (codigo==9)
+		{
+			int posD = atoi(posD_str);
+			int posO = atoi(posO_str);
+			printf("Pos destino: %d , Pos Host: %d \n", posD, posO);
+			write (miLista.conectados[posD].socket,respuesta,strlen(respuesta));
+			write (miLista.conectados[posO].socket,respuesta,strlen(respuesta));
+		}
+		else if (codigo==999)
 		{
 			for (int j=0; j<i;j++)		//miLista.num
 			{
@@ -850,7 +848,7 @@ int main(int argc, char *argv[])
     int sock_conn, sock_listen;
     struct sockaddr_in serv_adr;    
     
-	int puerto =50068;
+	int puerto =50074;
     
     if ((sock_listen = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 		printf("Error creant socket");
