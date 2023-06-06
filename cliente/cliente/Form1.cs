@@ -19,11 +19,9 @@ namespace cliente
         Socket serv;
         Thread Atender;
 
-        delegate void DelegadorParaEscribir(string mensaje);
-        delegate void DelegadoGB(GroupBox mensaje);
-        delegate void DelegadaDGV(DataGridView mensaje);
+        delegate void DelegadoParaEscribir(string mensaje);
 
-        int puerto = 50070;
+        int puerto = 50079;
 
         public Form1()
         {
@@ -39,6 +37,11 @@ namespace cliente
             dgv_conectados.Columns[0].HeaderText = "Usuario";
             dgv_conectados.Columns[1].HeaderText = "Invitar";
 
+        }
+
+        public void PonContadorServicios(string texto)
+        {
+            lbl_contar.Text = texto;
         }
 
         private void AtenderServidor()
@@ -65,9 +68,27 @@ namespace cliente
                         break;
                     case 1:     //PARTIDAS GANADAS
                         MessageBox.Show(tB_peticion.Text + " ha ganado " + trozos[1] + " partidas");
+                        if (trozos[2] == "7")
+                        {
+                            DelegadoParaEscribir delegado1 = new DelegadoParaEscribir(PonContadorServicios);
+                            lbl_contar.Invoke(delegado1, new object[] { trozos[3] });
+                        }
                         break;
                     case 2:     //PARTIDAS JUGADAS
                         MessageBox.Show(tB_peticion.Text + " ha jugado " + trozos[1] + " partidas");
+                        if (trozos[2] == "7")
+                        {
+                            DelegadoParaEscribir delegado2 = new DelegadoParaEscribir(PonContadorServicios);
+                            lbl_contar.Invoke(delegado2, new object[] { trozos[3] });
+                        }
+                        break;
+                    case 3:     //GANADOR
+                        MessageBox.Show("El ganador es " + trozos[1]);
+                        if (trozos[2] == "7")
+                        {
+                            DelegadoParaEscribir delegado2 = new DelegadoParaEscribir(PonContadorServicios);
+                            lbl_contar.Invoke(delegado2, new object[] { trozos[3] });
+                        }
                         break;
                     case 4:     //REGISTRO
                         if (trozos[1] == "CORRECTO")
@@ -92,22 +113,17 @@ namespace cliente
                                 row.CreateCells(dgv_conectados);
                                 row.Cells[0].Value = trozos[i + 2];
 
-                                //if (trozos[i + 2].Equals(tB_nombre.Text))
-                                //{
-                                    //row.Cells[1].Value = "-";
-                                //}
-                                //else
-                                //{
                                 DataGridViewCheckBoxCell checkboxCell = new DataGridViewCheckBoxCell();
                                 checkboxCell.Value = false;
                                 row.Cells[1] = checkboxCell;
-                                //}
+
                                 dgv_conectados.Rows.Add(row);
                             }
                         }
                         break;
                     case 7:     //SERVICIOS
-                        lbl_contar.Text = trozos[1];
+                        DelegadoParaEscribir delegado = new DelegadoParaEscribir(PonContadorServicios);
+                        lbl_contar.Invoke(delegado, new object[] { trozos[1] });
                         break;
                     case 8:
                         string popup = trozos[1] + "te ha invitado a una partida. Te atreves?";
@@ -131,7 +147,7 @@ namespace cliente
                         }));
                         break;
                     case 10:
-                        if (trozos[1]=="OK" && trozos[2] == tB_nombre.Text)
+                        if (trozos[1] =="OK" && trozos[2] == tB_nombre.Text)
                         {
                             string a = "Informacion para el host: " + trozos[3] + " se ha unido correctamente a tu partida";
                             MessageBox.Show(a, tB_nombre.Text);
