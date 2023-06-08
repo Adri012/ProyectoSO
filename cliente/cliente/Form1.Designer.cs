@@ -51,6 +51,7 @@
             btn_invitar = new Button();
             lbl_iniciado = new Label();
             btn_baja = new Button();
+            cbx_existe = new CheckBox();
             ((System.ComponentModel.ISupportInitialize)dgv_conectados).BeginInit();
             SuspendLayout();
             // 
@@ -205,7 +206,7 @@
             // cbx_ganador
             // 
             cbx_ganador.AutoSize = true;
-            cbx_ganador.Location = new Point(1013, 268);
+            cbx_ganador.Location = new Point(1013, 354);
             cbx_ganador.Name = "cbx_ganador";
             cbx_ganador.Size = new Size(235, 29);
             cbx_ganador.TabIndex = 17;
@@ -214,7 +215,7 @@
             // 
             // tB_peticion
             // 
-            tB_peticion.Location = new Point(1050, 314);
+            tB_peticion.Location = new Point(1050, 309);
             tB_peticion.Name = "tB_peticion";
             tB_peticion.Size = new Size(139, 31);
             tB_peticion.TabIndex = 18;
@@ -230,7 +231,7 @@
             // 
             // btn_enviar
             // 
-            btn_enviar.Location = new Point(1039, 363);
+            btn_enviar.Location = new Point(1039, 400);
             btn_enviar.Name = "btn_enviar";
             btn_enviar.Size = new Size(171, 48);
             btn_enviar.TabIndex = 20;
@@ -271,11 +272,22 @@
             btn_baja.UseVisualStyleBackColor = true;
             btn_baja.Click += btn_baja_Click;
             // 
+            // cbx_existe
+            // 
+            cbx_existe.AutoSize = true;
+            cbx_existe.Location = new Point(1013, 269);
+            cbx_existe.Name = "cbx_existe";
+            cbx_existe.Size = new Size(99, 29);
+            cbx_existe.TabIndex = 25;
+            cbx_existe.Text = "Existe ...";
+            cbx_existe.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1268, 553);
+            Controls.Add(cbx_existe);
             Controls.Add(btn_baja);
             Controls.Add(lbl_iniciado);
             Controls.Add(btn_invitar);
@@ -331,5 +343,6 @@
         public TextBox tB_nombre;
         private Label lbl_iniciado;
         private Button btn_baja;
+        private CheckBox cbx_existe;
     }
 }

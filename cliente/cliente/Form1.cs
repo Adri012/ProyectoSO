@@ -23,7 +23,7 @@ namespace cliente
         delegate void DelegadoParaTablaConectados(string[] trozos);
         delegate void DelegadoParaCerrarForm();
 
-        int puerto = 50091;
+        int puerto = 50095;
 
         public Form1()
         {
@@ -92,6 +92,7 @@ namespace cliente
 
                 switch (codigo)
                 {
+                    // -------------------------------CONSULTAS------------------------------------
                     case 1:     //PARTIDAS GANADAS
                         MessageBox.Show(tB_peticion.Text + " ha ganado " + trozos[1] + " partidas");
                         if (trozos[2] == "7")
@@ -116,6 +117,20 @@ namespace cliente
                             lbl_contar.Invoke(delegado2, new object[] { trozos[3] });
                         }
                         break;
+                    case 40:    //EXISTE EL USUARIO
+                        if (trozos[1] == "CORRECTO")
+                            MessageBox.Show(tB_peticion.Text + " EXISTE");
+                        else
+                            MessageBox.Show(tB_peticion.Text + " NO EXISTE");
+                        if (trozos[2] == "7")
+                        {
+                            DelegadoParaEscribir delegado1 = new DelegadoParaEscribir(PonContadorServicios);
+                            lbl_contar.Invoke(delegado1, new object[] { trozos[3] });
+                        }
+                        break;
+
+
+                    // -------------------------------FUNCIONES------------------------------------
                     case 4:     //REGISTRO
                         if (trozos[1] == "CORRECTO")
                             MessageBox.Show("Registro completado");
@@ -152,7 +167,19 @@ namespace cliente
                         DelegadoParaEscribir delegado = new DelegadoParaEscribir(PonContadorServicios);
                         lbl_contar.Invoke(delegado, new object[] { trozos[1] });
                         break;
-                    case 8:
+                    case 20:    //DAR DE BAJA
+                        if (trozos[1] == "INCORRECTO")
+                            MessageBox.Show("No se ha podido dar de baja");
+                        else if (trozos[1] == "CORRECTO")
+                        {
+                            MessageBox.Show("Usuario dado de baja correctamente");
+                            DelegadoParaCerrarForm delegado200 = new DelegadoParaCerrarForm(CerrarMenuPrincipal);
+                            this.Invoke(delegado200);
+                        }
+                        break;
+
+                    // -------------------------------INVITACIONES------------------------------------
+                    case 8:     //RECIBIR
                         string popup = trozos[1] + "te ha invitado a una partida. Te atreves?";
                         var pregunta = MessageBox.Show(popup, tB_nombre.Text, MessageBoxButtons.YesNo);
                         Invoke(new Action(() =>
@@ -173,7 +200,7 @@ namespace cliente
                             }
                         }));
                         break;
-                    case 10:
+                    case 10:    //EMPEZAR JUEGO
                         if (trozos[1] == "OK" && trozos[2] == tB_nombre.Text)
                         {
                             string a = "Informacion para el host: " + trozos[3] + " se ha unido correctamente a tu partida";
@@ -195,16 +222,7 @@ namespace cliente
                             MessageBox.Show(a, tB_nombre.Text);
                         }
                         break;
-                    case 20:
-                        if (trozos[1] == "INCORRECTO")
-                            MessageBox.Show("No se ha podido dar de baja");
-                        else if (trozos[1] == "CORRECTO")
-                        {
-                            MessageBox.Show("Usuario dado de baja correctamente");
-                            DelegadoParaCerrarForm delegado200 = new DelegadoParaCerrarForm(CerrarMenuPrincipal);
-                            this.Invoke(delegado200);
-                        }
-                        break;
+
                 }
             }
         }
@@ -289,15 +307,21 @@ namespace cliente
                 byte[] msg = System.Text.Encoding.ASCII.GetBytes(reg);
                 serv.Send(msg);
             }
-
+            //Petición de usuario con más ganadas(3)
             if (cbx_ganador.Checked)
             {
                 string reg = "3/";
                 byte[] msg = System.Text.Encoding.ASCII.GetBytes(reg);
                 serv.Send(msg);
             }
-
-            if (cbx_ganadas.Checked == false && cbx_jugadas.Checked == false && cbx_ganador.Checked == false)
+            //Petición si existe el usuario (40)
+            if (cbx_existe.Checked)
+            {
+                string reg = "40/" + tB_peticion.Text;
+                byte[] msg = System.Text.Encoding.ASCII.GetBytes(reg);
+                serv.Send(msg);
+            }
+            if (cbx_ganadas.Checked == false && cbx_jugadas.Checked == false && cbx_ganador.Checked == false && cbx_existe.Checked == false)
                 MessageBox.Show("Error en la petición");
         }
         private void btn_invitar_Click(object sender, EventArgs e)

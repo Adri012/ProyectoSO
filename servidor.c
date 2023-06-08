@@ -248,6 +248,29 @@ void DameGanador(char respuesta[512])
 		sprintf(respuesta,"3/%s",row[0]);
 }
 
+void ExisteUsuario(char p[200], char respuesta[512])
+{
+	char nombre[20];
+	strcpy(nombre,p);
+	char consulta[200];
+	sprintf(consulta, "SELECT * FROM Jugador WHERE username = '%s'", nombre);
+	printf("%s",consulta);
+	err=mysql_query(conn, consulta);
+	printf("error: %d \n", err);
+	
+	resultado = mysql_store_result(conn);
+	row = mysql_fetch_row(resultado);
+	if (row == NULL)
+	{
+		printf("No se ha obtenido la consulta \n");
+		sprintf(respuesta,"40/INCORRECTO");
+	}
+	else
+	{
+		printf("El usuario existe \n");
+		sprintf(respuesta,"40/CORRECTO"); 	 
+	}
+}
 
 
 //______________________________________________________________________________
@@ -735,6 +758,14 @@ void *AtenderCliente (void *socket)
 			sprintf(respuesta, "%s/7/%d", respuesta, contador);
 		}
 		
+		//EXISTE EL USUARIO
+		if (codigo ==40){
+			ExisteUsuario(p, respuesta);
+			contador = contador +1;
+			sprintf(respuesta, "%s/7/%d", respuesta, contador);
+			printf("p1 \n");
+		}
+		
 		//REGISTRO
 		if (codigo == 4)
 			Registro(p, respuesta);
@@ -759,16 +790,6 @@ void *AtenderCliente (void *socket)
 			pthread_mutex_unlock( &mutex);
 		}
 				
-		//NUEVO CONECTADO
-/*		if (codigo==7)*/
-/*		{*/
-/*			pthread_mutex_lock( &mutex );*/
-/*			NuevoConectado(&miLista, p, sock_conn);*/
-/*			DameConectados(&miLista,respuesta);*/
-/*			pthread_mutex_unlock( &mutex);*/
-/*			notificar=1;*/
-/*   		}*/
-		
 		//INVITACION
 		if (codigo==8)
 		{
@@ -796,10 +817,11 @@ void *AtenderCliente (void *socket)
 		}
    	 
 		printf("Respuesta: %s \n", respuesta);
-		if ((codigo ==1)||(codigo==2)|| (codigo==3)||(codigo==4)|| (codigo==5)|| (codigo==6) || (codigo ==7) || (codigo==20))
+		if ((codigo ==1)||(codigo==2)|| (codigo==3)||(codigo==4)|| (codigo==5)|| (codigo==6) || (codigo ==7) || (codigo==20) || (codigo==40))
 		{
 			printf("Socket por el que se enviara: %d \n", sock_conn);
 			write (sock_conn, respuesta, strlen(respuesta));
+			printf("p2 \n");
 		}
 		else if (codigo==8)
 		{
@@ -850,8 +872,9 @@ void *AtenderCliente (void *socket)
 		
 		
 		//CONTADOR DE FUNCIONES
-		if ((codigo ==1)||(codigo==2)|| (codigo==3))
+		if ((codigo ==1)||(codigo==2)|| (codigo==3) || (codigo==40))
 		{
+			printf("p3 \n");
 			char numServicios[20];
 			sprintf(numServicios, "7/%d", contador);
 			for (int j=0; j<i;j++)		//miLista.num
@@ -899,7 +922,7 @@ int main(int argc, char *argv[])
     int sock_conn, sock_listen;
     struct sockaddr_in serv_adr;    
     
-	int puerto =50091;
+	int puerto =50095;
     
     if ((sock_listen = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 		printf("Error creant socket");
