@@ -20,19 +20,22 @@ namespace cliente
         Thread Atender;
 
         delegate void DelegadoParaEscribir(string mensaje);
+        delegate void DelegadoParaTablaConectados(string[] trozos);
+        delegate void DelegadoParaCerrarForm();
 
-        int puerto = 50079;
+        int puerto = 50091;
 
         public Form1()
         {
             InitializeComponent();
-            CheckForIllegalCrossThreadCalls = false;
+            //CheckForIllegalCrossThreadCalls = false;
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
             lbl_email.Hide();
             tB_email.Hide();
+            lbl_iniciado.Hide();
             dgv_conectados.ColumnCount = 2;
             dgv_conectados.Columns[0].HeaderText = "Usuario";
             dgv_conectados.Columns[1].HeaderText = "Invitar";
@@ -43,29 +46,52 @@ namespace cliente
         {
             lbl_contar.Text = texto;
         }
+        public void PonUsuarioIniciado(string texto)
+        {
+            lbl_iniciado.Text = texto;
+            lbl_iniciado.Show();
+            tB_peticion.Text = texto;
+        }
+        public void PonTablaConectados(string[] trozos)
+        {
+            dgv_conectados.Rows.Clear();
+            int num = Convert.ToInt32(trozos[1]);
+            if (num > 0)
+            {
+                for (int i = 0; i < num; i++)
+                {
+                    DataGridViewRow row = new DataGridViewRow();
+                    row.CreateCells(dgv_conectados);
+                    row.Cells[0].Value = trozos[i + 2];
+
+                    DataGridViewCheckBoxCell checkboxCell = new DataGridViewCheckBoxCell();
+                    checkboxCell.Value = false;
+                    row.Cells[1] = checkboxCell;
+
+                    dgv_conectados.Rows.Add(row);
+                }
+            }
+        }
+        public void CerrarMenuPrincipal()
+        {
+            this.Close();
+        }
 
         private void AtenderServidor()
         {
             while (true)
             {
-                if (serv.Connected == false)
-                    break;
+                //if (serv.Connected == false)
+                //    break;
                 byte[] msg2 = new byte[200];
                 serv.Receive(msg2);
                 string mensaje = Encoding.ASCII.GetString(msg2).Split('\0')[0];
-                MessageBox.Show(mensaje);
+                //MessageBox.Show(mensaje);
                 string[] trozos = mensaje.Split('/');
                 int codigo = Convert.ToInt32(trozos[0]);
 
                 switch (codigo)
                 {
-                    case 0:     //PARTIDAS GANADAS
-                        MessageBox.Show(trozos[1]);
-                        serv.Shutdown(SocketShutdown.Both);
-                        serv.Close();
-                        //Atender.Abort();
-                        Close();
-                        break;
                     case 1:     //PARTIDAS GANADAS
                         MessageBox.Show(tB_peticion.Text + " ha ganado " + trozos[1] + " partidas");
                         if (trozos[2] == "7")
@@ -92,34 +118,35 @@ namespace cliente
                         break;
                     case 4:     //REGISTRO
                         if (trozos[1] == "CORRECTO")
-                            MessageBox.Show("Ya estas registrado");
+                            MessageBox.Show("Registro completado");
+                        else if (trozos[1] == "YAEXISTE")
+                            MessageBox.Show("Este usuario ya figura en la base de datos. Prueba a iniciar sesión");
                         else
                             MessageBox.Show("Registro incorrecto");
                         break;
                     case 5:     //INICIO SESION
                         if (trozos[1] == "INCORRECTO")
+                        {
                             MessageBox.Show("Nombre de usuario o contraseña incorrecto");
+                            string reg51 = "0/" + tB_nombre.Text;
+                            byte[] msg51 = System.Text.Encoding.ASCII.GetBytes(reg51);
+                            serv.Send(msg51);
+                        }
                         else
-                            MessageBox.Show("Bienvenido " + tB_nombre.Text);
+                        {
+                            MessageBox.Show("Bienvenido, " + tB_nombre.Text);
+                            DelegadoParaEscribir delegado5 = new DelegadoParaEscribir(PonUsuarioIniciado);
+                            lbl_iniciado.Invoke(delegado5, new object[] { tB_nombre.Text });
+                            tB_peticion.Invoke(delegado5, new object[] { tB_nombre.Text });
+
+                            string reg52 = "6/";
+                            byte[] msg52 = System.Text.Encoding.ASCII.GetBytes(reg52);
+                            serv.Send(msg52);
+                        }
                         break;
                     case 6:     //LISTA CONECTADOS
-                        dgv_conectados.Rows.Clear();
-                        int num = Convert.ToInt32(trozos[1]);
-                        if (num > 0)
-                        {
-                            for (int i = 0; i < num; i++)
-                            {
-                                DataGridViewRow row = new DataGridViewRow();
-                                row.CreateCells(dgv_conectados);
-                                row.Cells[0].Value = trozos[i + 2];
-
-                                DataGridViewCheckBoxCell checkboxCell = new DataGridViewCheckBoxCell();
-                                checkboxCell.Value = false;
-                                row.Cells[1] = checkboxCell;
-
-                                dgv_conectados.Rows.Add(row);
-                            }
-                        }
+                        DelegadoParaTablaConectados delegado3 = new DelegadoParaTablaConectados(PonTablaConectados);
+                        dgv_conectados.Invoke(delegado3, new object[] { trozos });
                         break;
                     case 7:     //SERVICIOS
                         DelegadoParaEscribir delegado = new DelegadoParaEscribir(PonContadorServicios);
@@ -147,7 +174,7 @@ namespace cliente
                         }));
                         break;
                     case 10:
-                        if (trozos[1] =="OK" && trozos[2] == tB_nombre.Text)
+                        if (trozos[1] == "OK" && trozos[2] == tB_nombre.Text)
                         {
                             string a = "Informacion para el host: " + trozos[3] + " se ha unido correctamente a tu partida";
                             MessageBox.Show(a, tB_nombre.Text);
@@ -166,6 +193,16 @@ namespace cliente
                         {
                             string a = "Informacion para " + trozos[3] + ", no has podido unirte a la partida de " + trozos[2];
                             MessageBox.Show(a, tB_nombre.Text);
+                        }
+                        break;
+                    case 20:
+                        if (trozos[1] == "INCORRECTO")
+                            MessageBox.Show("No se ha podido dar de baja");
+                        else if (trozos[1] == "CORRECTO")
+                        {
+                            MessageBox.Show("Usuario dado de baja correctamente");
+                            DelegadoParaCerrarForm delegado200 = new DelegadoParaCerrarForm(CerrarMenuPrincipal);
+                            this.Invoke(delegado200);
                         }
                         break;
                 }
@@ -191,34 +228,50 @@ namespace cliente
 
         private void btn_Iniciar_Click(object sender, EventArgs e)
         {
-            string reg = "5/" + tB_nombre.Text + "/" + tB_contrasena.Text;
-            byte[] msg = System.Text.Encoding.ASCII.GetBytes(reg);
+            IPAddress direc = IPAddress.Parse("192.168.56.102");
+            IPEndPoint ipep = new IPEndPoint(direc, puerto);
+            serv = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
-            byte[] res = new byte[150];
-            serv.Receive(res);
-            reg = System.Text.Encoding.ASCII.GetString(res).Split('\0')[0];
-            if (reg == "SI")
+            if (tB_nombre.Text == "" || tB_contrasena.Text == "")
             {
-                MessageBox.Show("Inicio completado");
+                MessageBox.Show("Introduzca nombre de usuario y contrasena");
             }
             else
             {
-                MessageBox.Show("No se ha podido iniciar");
+                try
+                {
+                    serv.Connect(ipep);
+                    //MessageBox.Show("Conexión de socket establecida");
+                }
+                catch (SocketException)
+                {
+                    MessageBox.Show("Error de socket");
+                    return;
+                }
+
+                ThreadStart ts = delegate { AtenderServidor(); };
+                Atender = new Thread(ts);
+                Atender.Start();
+
+                string reg = "5/" + tB_nombre.Text + "/" + tB_contrasena.Text;
+                byte[] msg = System.Text.Encoding.ASCII.GetBytes(reg);
+                serv.Send(msg);
             }
         }
-
         private void btn_Olvidado_Click(object sender, EventArgs e)
         {
             MessageBox.Show("Aun no se ha implementado xd");
         }
-
         private void btn_salir_Click(object sender, EventArgs e)
         {
             string cod = "0/" + tB_nombre.Text;
             byte[] msg = System.Text.Encoding.ASCII.GetBytes(cod);
             serv.Send(msg);
+            //serv.Shutdown(SocketShutdown.Both);
+            //serv.Close();
+            //Atender.Abort();
+            this.Close();
         }
-
         private void btn_enviar_Click(object sender, EventArgs e)
         {
             //Petición partidas ganadas por el usuario seleccionado (1)
@@ -245,47 +298,8 @@ namespace cliente
             }
 
             if (cbx_ganadas.Checked == false && cbx_jugadas.Checked == false && cbx_ganador.Checked == false)
-            {
                 MessageBox.Show("Error en la petición");
-            }
         }
-
-        private void btn_conectar_Click(object sender, EventArgs e)
-        {
-            IPAddress direc = IPAddress.Parse("192.168.56.102");
-            IPEndPoint ipep = new IPEndPoint(direc, puerto);
-            serv = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-
-            try
-            {
-                serv.Connect(ipep);
-                MessageBox.Show("Bienvenido");
-            }
-            catch (SocketException)
-            {
-                MessageBox.Show("Error de socket");
-                return;
-            }
-
-            ThreadStart ts = delegate { AtenderServidor(); };
-            Atender = new Thread(ts);
-            Atender.Start();
-
-
-            if (tB_nombre.Text == "")
-            {
-                MessageBox.Show("Introduzca nombre de usuario");
-            }
-            else
-            {
-                string reg9 = "7/" + tB_nombre.Text;
-                MessageBox.Show(reg9);
-                byte[] msg9 = System.Text.Encoding.ASCII.GetBytes(reg9);
-                serv.Send(msg9);
-            }
-
-        }
-
         private void btn_invitar_Click(object sender, EventArgs e)
         {
             int invitados = 0;
@@ -307,7 +321,7 @@ namespace cliente
             {
                 foreach (DataGridViewRow row in dgv_conectados.Rows)
                 {
-                   
+
                     if (Convert.ToBoolean(row.Cells[1].Value) && Convert.ToString(row.Cells[0].Value) == tB_nombre.Text)
                         MessageBox.Show("No te puedes invitar a ti mismo");
 
@@ -335,6 +349,21 @@ namespace cliente
                 byte[] msg = System.Text.Encoding.ASCII.GetBytes(reg);
                 serv.Send(msg);
             }
+        }
+
+        private void btn_baja_Click(object sender, EventArgs e)
+        {
+            string popup = "Seguro que deseas darte de baja?";
+            var pregunta = MessageBox.Show(popup, tB_nombre.Text, MessageBoxButtons.YesNo);
+            Invoke(new Action(() =>
+            {
+                if (pregunta == DialogResult.Yes)
+                {
+                    string reg = "20/" + tB_nombre.Text + "/" + tB_contrasena.Text;
+                    byte[] msg = System.Text.Encoding.ASCII.GetBytes(reg);
+                    serv.Send(msg);
+                }
+            }));
         }
     }
 }

@@ -48,28 +48,29 @@
             tB_peticion = new TextBox();
             lbl_contar = new Label();
             btn_enviar = new Button();
-            btn_conectar = new Button();
             btn_invitar = new Button();
+            lbl_iniciado = new Label();
+            btn_baja = new Button();
             ((System.ComponentModel.ISupportInitialize)dgv_conectados).BeginInit();
             SuspendLayout();
             // 
             // tB_nombre
             // 
-            tB_nombre.Location = new Point(266, 219);
+            tB_nombre.Location = new Point(266, 146);
             tB_nombre.Name = "tB_nombre";
             tB_nombre.Size = new Size(235, 31);
             tB_nombre.TabIndex = 0;
             // 
             // tB_contrasena
             // 
-            tB_contrasena.Location = new Point(266, 290);
+            tB_contrasena.Location = new Point(266, 217);
             tB_contrasena.Name = "tB_contrasena";
             tB_contrasena.Size = new Size(235, 31);
             tB_contrasena.TabIndex = 1;
             // 
             // tB_email
             // 
-            tB_email.Location = new Point(266, 356);
+            tB_email.Location = new Point(266, 283);
             tB_email.Name = "tB_email";
             tB_email.Size = new Size(235, 31);
             tB_email.TabIndex = 2;
@@ -77,7 +78,7 @@
             // lbl_nombre
             // 
             lbl_nombre.AutoSize = true;
-            lbl_nombre.Location = new Point(65, 222);
+            lbl_nombre.Location = new Point(65, 149);
             lbl_nombre.Name = "lbl_nombre";
             lbl_nombre.Size = new Size(166, 25);
             lbl_nombre.TabIndex = 3;
@@ -86,7 +87,7 @@
             // lbl_contrasena
             // 
             lbl_contrasena.AutoSize = true;
-            lbl_contrasena.Location = new Point(65, 290);
+            lbl_contrasena.Location = new Point(65, 217);
             lbl_contrasena.Name = "lbl_contrasena";
             lbl_contrasena.Size = new Size(101, 25);
             lbl_contrasena.TabIndex = 4;
@@ -95,7 +96,7 @@
             // lbl_email
             // 
             lbl_email.AutoSize = true;
-            lbl_email.Location = new Point(62, 359);
+            lbl_email.Location = new Point(62, 286);
             lbl_email.Name = "lbl_email";
             lbl_email.Size = new Size(157, 25);
             lbl_email.TabIndex = 5;
@@ -103,7 +104,7 @@
             // 
             // btn_registro
             // 
-            btn_registro.Location = new Point(53, 441);
+            btn_registro.Location = new Point(53, 368);
             btn_registro.Name = "btn_registro";
             btn_registro.Size = new Size(178, 63);
             btn_registro.TabIndex = 6;
@@ -113,7 +114,7 @@
             // 
             // btn_Iniciar
             // 
-            btn_Iniciar.Location = new Point(337, 441);
+            btn_Iniciar.Location = new Point(337, 368);
             btn_Iniciar.Name = "btn_Iniciar";
             btn_Iniciar.Size = new Size(164, 63);
             btn_Iniciar.TabIndex = 7;
@@ -123,7 +124,7 @@
             // 
             // btn_Olvidado
             // 
-            btn_Olvidado.Location = new Point(210, 530);
+            btn_Olvidado.Location = new Point(210, 457);
             btn_Olvidado.Name = "btn_Olvidado";
             btn_Olvidado.Size = new Size(291, 33);
             btn_Olvidado.TabIndex = 8;
@@ -134,28 +135,28 @@
             // lbl_Bienvenido
             // 
             lbl_Bienvenido.AutoSize = true;
-            lbl_Bienvenido.Font = new Font("Old English Text MT", 28F, FontStyle.Regular, GraphicsUnit.Point);
-            lbl_Bienvenido.Location = new Point(350, 26);
+            lbl_Bienvenido.Font = new Font("Papyrus", 28F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point);
+            lbl_Bienvenido.Location = new Point(548, 22);
             lbl_Bienvenido.Name = "lbl_Bienvenido";
-            lbl_Bienvenido.Size = new Size(496, 66);
+            lbl_Bienvenido.Size = new Size(259, 88);
             lbl_Bienvenido.TabIndex = 9;
-            lbl_Bienvenido.Text = "Bienvenido al Juego";
+            lbl_Bienvenido.Text = "TABÚ";
             // 
             // dgv_conectados
             // 
             dgv_conectados.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dgv_conectados.Location = new Point(554, 207);
+            dgv_conectados.Location = new Point(554, 201);
             dgv_conectados.Name = "dgv_conectados";
             dgv_conectados.RowHeadersWidth = 62;
             dgv_conectados.RowTemplate.Height = 33;
-            dgv_conectados.Size = new Size(468, 250);
+            dgv_conectados.Size = new Size(385, 250);
             dgv_conectados.TabIndex = 10;
             // 
             // lbl_conectados
             // 
             lbl_conectados.AutoSize = true;
             lbl_conectados.Font = new Font("Bahnschrift SemiBold Condensed", 10F, FontStyle.Bold, GraphicsUnit.Point);
-            lbl_conectados.Location = new Point(612, 151);
+            lbl_conectados.Location = new Point(625, 147);
             lbl_conectados.Name = "lbl_conectados";
             lbl_conectados.Size = new Size(234, 24);
             lbl_conectados.TabIndex = 11;
@@ -163,7 +164,7 @@
             // 
             // btn_salir
             // 
-            btn_salir.Location = new Point(1246, 545);
+            btn_salir.Location = new Point(1167, 504);
             btn_salir.Name = "btn_salir";
             btn_salir.Size = new Size(91, 38);
             btn_salir.TabIndex = 12;
@@ -175,7 +176,7 @@
             // 
             lbl_peticiones.AutoSize = true;
             lbl_peticiones.Font = new Font("Bahnschrift SemiBold Condensed", 10F, FontStyle.Bold, GraphicsUnit.Point);
-            lbl_peticiones.Location = new Point(1113, 144);
+            lbl_peticiones.Location = new Point(1042, 150);
             lbl_peticiones.Name = "lbl_peticiones";
             lbl_peticiones.Size = new Size(78, 24);
             lbl_peticiones.TabIndex = 13;
@@ -184,7 +185,7 @@
             // cbx_ganadas
             // 
             cbx_ganadas.AutoSize = true;
-            cbx_ganadas.Location = new Point(1084, 192);
+            cbx_ganadas.Location = new Point(1013, 198);
             cbx_ganadas.Name = "cbx_ganadas";
             cbx_ganadas.Size = new Size(214, 29);
             cbx_ganadas.TabIndex = 15;
@@ -194,7 +195,7 @@
             // cbx_jugadas
             // 
             cbx_jugadas.AutoSize = true;
-            cbx_jugadas.Location = new Point(1084, 227);
+            cbx_jugadas.Location = new Point(1013, 233);
             cbx_jugadas.Name = "cbx_jugadas";
             cbx_jugadas.Size = new Size(209, 29);
             cbx_jugadas.TabIndex = 16;
@@ -204,7 +205,7 @@
             // cbx_ganador
             // 
             cbx_ganador.AutoSize = true;
-            cbx_ganador.Location = new Point(1084, 262);
+            cbx_ganador.Location = new Point(1013, 268);
             cbx_ganador.Name = "cbx_ganador";
             cbx_ganador.Size = new Size(235, 29);
             cbx_ganador.TabIndex = 17;
@@ -213,7 +214,7 @@
             // 
             // tB_peticion
             // 
-            tB_peticion.Location = new Point(1121, 308);
+            tB_peticion.Location = new Point(1050, 314);
             tB_peticion.Name = "tB_peticion";
             tB_peticion.Size = new Size(139, 31);
             tB_peticion.TabIndex = 18;
@@ -222,14 +223,14 @@
             // 
             lbl_contar.BorderStyle = BorderStyle.FixedSingle;
             lbl_contar.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point);
-            lbl_contar.Location = new Point(1208, 141);
+            lbl_contar.Location = new Point(1137, 147);
             lbl_contar.Name = "lbl_contar";
             lbl_contar.Size = new Size(40, 34);
             lbl_contar.TabIndex = 19;
             // 
             // btn_enviar
             // 
-            btn_enviar.Location = new Point(1110, 357);
+            btn_enviar.Location = new Point(1039, 363);
             btn_enviar.Name = "btn_enviar";
             btn_enviar.Size = new Size(171, 48);
             btn_enviar.TabIndex = 20;
@@ -237,21 +238,9 @@
             btn_enviar.UseVisualStyleBackColor = true;
             btn_enviar.Click += btn_enviar_Click;
             // 
-            // btn_conectar
-            // 
-            btn_conectar.BackColor = SystemColors.ActiveCaption;
-            btn_conectar.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point);
-            btn_conectar.Location = new Point(135, 111);
-            btn_conectar.Name = "btn_conectar";
-            btn_conectar.Size = new Size(285, 78);
-            btn_conectar.TabIndex = 21;
-            btn_conectar.Text = "Conectar";
-            btn_conectar.UseVisualStyleBackColor = false;
-            btn_conectar.Click += btn_conectar_Click;
-            // 
             // btn_invitar
             // 
-            btn_invitar.Location = new Point(750, 486);
+            btn_invitar.Location = new Point(685, 481);
             btn_invitar.Name = "btn_invitar";
             btn_invitar.Size = new Size(129, 34);
             btn_invitar.TabIndex = 22;
@@ -259,13 +248,37 @@
             btn_invitar.UseVisualStyleBackColor = true;
             btn_invitar.Click += btn_invitar_Click;
             // 
+            // lbl_iniciado
+            // 
+            lbl_iniciado.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            lbl_iniciado.AutoSize = true;
+            lbl_iniciado.Font = new Font("Perpetua Titling MT", 20F, FontStyle.Regular, GraphicsUnit.Point);
+            lbl_iniciado.Location = new Point(1105, 22);
+            lbl_iniciado.Name = "lbl_iniciado";
+            lbl_iniciado.Size = new Size(143, 47);
+            lbl_iniciado.TabIndex = 23;
+            lbl_iniciado.Text = "label1";
+            lbl_iniciado.TextAlign = ContentAlignment.MiddleRight;
+            // 
+            // btn_baja
+            // 
+            btn_baja.Font = new Font("Segoe UI", 7F, FontStyle.Regular, GraphicsUnit.Point);
+            btn_baja.Location = new Point(1088, 75);
+            btn_baja.Name = "btn_baja";
+            btn_baja.Size = new Size(154, 31);
+            btn_baja.TabIndex = 24;
+            btn_baja.Text = "Darse de baja";
+            btn_baja.UseVisualStyleBackColor = true;
+            btn_baja.Click += btn_baja_Click;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1350, 595);
+            ClientSize = new Size(1268, 553);
+            Controls.Add(btn_baja);
+            Controls.Add(lbl_iniciado);
             Controls.Add(btn_invitar);
-            Controls.Add(btn_conectar);
             Controls.Add(btn_enviar);
             Controls.Add(lbl_contar);
             Controls.Add(tB_peticion);
@@ -314,8 +327,9 @@
         private TextBox tB_peticion;
         private Label lbl_contar;
         private Button btn_enviar;
-        private Button btn_conectar;
         private Button btn_invitar;
         public TextBox tB_nombre;
+        private Label lbl_iniciado;
+        private Button btn_baja;
     }
 }

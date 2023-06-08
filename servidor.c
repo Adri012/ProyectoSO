@@ -122,13 +122,23 @@ void NuevoConectado (ListaConectados *lista, char p[200], int socket)
 {
     char nombre[20];
 	strcpy(nombre,p);
-	printf("Este es el antiguo listanum %d \n", lista->num);
-	strcpy(lista->conectados[lista->num].nombre, nombre);
-	lista->conectados[lista->num].socket = socket;
-	lista->num = lista->num +1;
-	printf("Este es el nuevo listanum %d \n", lista->num);
+	char conectado[512];	
+	DameConectados(lista, conectado);
+	int e=0;
+	for(i=0; i<lista->num; i++)
+	{
+		if (strcmp(lista->conectados[i].nombre, nombre)==0)
+			e=1;
+	}
+	if (e==0)
+	{	
+		printf("Este es el antiguo listanum %d \n", lista->num);
+		strcpy(lista->conectados[lista->num].nombre, nombre);
+		lista->conectados[lista->num].socket = socket;
+		lista->num = lista->num +1;
+		printf("Este es el nuevo listanum %d \n", lista->num);
+	}
 }
-
 int Desconectar (ListaConectados *lista, char p[200], char respuesta[512])
 {
     char nombre[20];
@@ -319,6 +329,30 @@ int InicioSesion(char p[200], char respuesta[512], int sock_conn)
     {
 		printf("Inicio de sesion completado \n");
 		sprintf(respuesta,"5/CORRECTO"); 	 
+	}
+}
+
+int DarseDeBaja(char p[200], char respuesta[512], int sock_conn)
+{
+	char nombre[20];
+	char contrasena[20];
+	strcpy (nombre, p);
+	p = strtok(NULL, "/");
+	strcpy(contrasena,p);
+	
+	char consulta[512];
+	sprintf(consulta, "DELETE FROM Jugador WHERE (username='%s' AND password='%s')",nombre,contrasena);
+	err=mysql_query(conn, consulta);
+	printf("error: %d \n", err);
+	if (err!=0){
+		printf ("Error al consultar datos de la base %u %s\n", mysql_errno(conn),mysql_error(conn));
+		sprintf(respuesta,"20/INCORRECTO"); 
+		exit(1);
+	}
+	else
+	{
+		printf("Usuario eliminado de la BBDD \n");
+		sprintf(respuesta,"20/CORRECTO"); 	 
 	}
 }
 
@@ -629,6 +663,7 @@ void *AtenderCliente (void *socket)
 	int pedir=0;
     char peticion[512];
     char respuesta[512];
+	char respuesta2[512];
     int ret;
 	
 	//char socketD_str[4];
@@ -647,7 +682,7 @@ void *AtenderCliente (void *socket)
 		exit(1);
     }
     
-    conn = mysql_real_connect(conn,"localhost","root","mysql","M1_BBDD",0,NULL,0);
+    conn = mysql_real_connect(conn,"localhost","root","mysql","BBDD",0,NULL,0);
     //conn = mysql_real_connect(conn,"shiva2.upc.es","root","mysql","M1_BBDD",0,NULL,0);
 
     if (conn == NULL)
@@ -666,6 +701,7 @@ void *AtenderCliente (void *socket)
 		char *p = strtok( peticion, "/");
 		int codigo =  atoi(p);
 		p = strtok(NULL,"/");
+		printf("codigo: %d, p: %s \n", codigo, p);
    	 
 		//----------------------------------------------------------------------------------
 		
@@ -675,7 +711,7 @@ void *AtenderCliente (void *socket)
 			pthread_mutex_lock( &mutex );
 			int desc = Desconectar(&miLista, p, respuesta);
 			pthread_mutex_unlock( &mutex);
-			notificar=1;
+			//notificar=1;
 		}
 		
 		//PARTIDAS GANADAS
@@ -706,6 +742,9 @@ void *AtenderCliente (void *socket)
 		//INICIO SESION
 		if (codigo == 5)
 		{
+			pthread_mutex_lock( &mutex );
+			NuevoConectado(&miLista, p, sock_conn);
+			pthread_mutex_unlock( &mutex);
 			InicioSesion(p, respuesta, sock_conn);
 			pthread_mutex_lock( &mutex );
 			DameConectados(&miLista,conectado);
@@ -721,14 +760,14 @@ void *AtenderCliente (void *socket)
 		}
 				
 		//NUEVO CONECTADO
-		if (codigo==7)
-		{
-			pthread_mutex_lock( &mutex );
-			NuevoConectado(&miLista, p, sock_conn);
-			DameConectados(&miLista,respuesta);
-			pthread_mutex_unlock( &mutex);
-			notificar=1;
-   		}
+/*		if (codigo==7)*/
+/*		{*/
+/*			pthread_mutex_lock( &mutex );*/
+/*			NuevoConectado(&miLista, p, sock_conn);*/
+/*			DameConectados(&miLista,respuesta);*/
+/*			pthread_mutex_unlock( &mutex);*/
+/*			notificar=1;*/
+/*   		}*/
 		
 		//INVITACION
 		if (codigo==8)
@@ -744,9 +783,20 @@ void *AtenderCliente (void *socket)
 			ConfirmarInvitacion(p, &miLista, &miListaPartidas, respuesta, posD_str, posO_str);
 			//pthread_mutex_unlock( &mutex);
    		}
+		if (codigo == 20)
+		{
+			DarseDeBaja(p, respuesta, sock_conn);
+			pthread_mutex_lock( &mutex );
+			int desc = Desconectar(&miLista, p, respuesta2);
+			pthread_mutex_unlock( &mutex);
+			pthread_mutex_lock( &mutex );
+			DameConectados(&miLista,conectado);
+			pthread_mutex_unlock( &mutex);
+			notificar=1; 
+		}
    	 
 		printf("Respuesta: %s \n", respuesta);
-		if ((codigo ==1)||(codigo==2)|| (codigo==3)||(codigo==4)|| (codigo==5)|| (codigo==6) || (codigo ==7))
+		if ((codigo ==1)||(codigo==2)|| (codigo==3)||(codigo==4)|| (codigo==5)|| (codigo==6) || (codigo ==7) || (codigo==20))
 		{
 			printf("Socket por el que se enviara: %d \n", sock_conn);
 			write (sock_conn, respuesta, strlen(respuesta));
@@ -790,13 +840,13 @@ void *AtenderCliente (void *socket)
 			write (miLista.conectados[posD].socket,respuesta,strlen(respuesta));
 			write (miLista.conectados[posO].socket,respuesta,strlen(respuesta));
 		}
-		else if (codigo==999)
-		{
-			for (int j=0; j<i;j++)		//miLista.num
-			{
-				write (miLista.conectados[j].socket,respuesta,strlen(respuesta));
-			}
-		}
+/*		else if (codigo==999)*/
+/*		{*/
+/*			for (int j=0; j<i;j++)		*///miLista.num
+/*			{*/
+/*				write (miLista.conectados[j].socket,respuesta,strlen(respuesta));*/
+/*			}*/
+/*		}*/
 		
 		
 		//CONTADOR DE FUNCIONES
@@ -816,8 +866,6 @@ void *AtenderCliente (void *socket)
 		//NOTIFICACION
 		if (notificar==1)
 		{
-			//char cabecera [512] = "6/";
-			//strcat (cabecera, conectado);
 			DameConectados(&miLista,conectado);
 			printf ("Notificación: %s \n",conectado);
 			for (int j=0; j<i;j++)		//miLista.num
@@ -826,6 +874,17 @@ void *AtenderCliente (void *socket)
 			}
 		}
 		notificar=0;
+		
+		if (codigo==0)
+		{
+			DameConectados(&miLista,conectado);
+			printf ("Notificación: %s \n",conectado);
+			for (int j=0; j<i;j++)		//miLista.num
+			{
+				if (miLista.conectados[j].socket != sock_conn)
+					write (miLista.conectados[j].socket,conectado,strlen(conectado));
+			}
+		}
     }
     close(sock_conn);    
 }
@@ -840,7 +899,7 @@ int main(int argc, char *argv[])
     int sock_conn, sock_listen;
     struct sockaddr_in serv_adr;    
     
-	int puerto =50079;
+	int puerto =50091;
     
     if ((sock_listen = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 		printf("Error creant socket");
